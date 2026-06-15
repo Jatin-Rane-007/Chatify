@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Chatify",
+    "slug": "mobileApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/AppIcons/appstore.png",
+    "scheme": "mobileapp",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.chatify.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/AppIcons/adaptive-foreground.png",
+        "monochromeImage": "./assets/AppIcons/notification-icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#208AEF",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/AppIcons/notification-icon.png",
+          "color": "#FF6B35"
+        }
+      ]
+    ],
+    "notification": {
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "Chatify"
+    },
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "EXPO_PROJECT_ID": "9587856a-2c80-43fd-b8e4-58ce9b01356b",
+      "router": {},
+      "eas": {
+        "projectId": "9587856a-2c80-43fd-b8e4-58ce9b01356b"
+      }
+    },
+    "owner": "batman_007"
+  }
+}

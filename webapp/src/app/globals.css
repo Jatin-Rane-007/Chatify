@@ -1,0 +1,304 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ---------------------------------------------------------------------------
+ * Chatify theme — Emerald minimal (Notion/Stripe-inspired)
+ *
+ * Every UI value is read from a CSS variable here. CSS variables mirror
+ * src/styles/tokens.ts. Components MUST consume tokens via Tailwind utility
+ * classes (bg-primary, text-foreground, border-border, etc.) or var(--token).
+ * No raw hex/rgb/oklch in components, ever. See src/styles/AGENTS.md.
+ * ------------------------------------------------------------------------- */
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---- LIGHT (default) ----------------------------------------------------- */
+:root {
+  /* Color — stored as raw "H S% L%" so they compose with hsl() + alpha */
+  --background:           60 9% 98%;
+  --foreground:           160 14% 10%;
+  --card:                 0 0% 100%;
+  --card-foreground:      160 14% 10%;
+  --popover:              0 0% 100%;
+  --popover-foreground:   160 14% 10%;
+  --primary:              160 84% 39%;
+  --primary-foreground:   0 0% 100%;
+  --primary-hover:        160 84% 34%;
+  --secondary:            150 10% 96%;
+  --secondary-foreground: 160 14% 10%;
+  --muted:                150 10% 96%;
+  --muted-foreground:     160 6% 42%;
+  --accent:               150 50% 94%;
+  --accent-foreground:    160 70% 22%;
+  --destructive:          0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --success:              160 84% 39%;
+  --warning:              38 92% 50%;
+  --border:               150 8% 90%;
+  --input:                150 8% 90%;
+  --ring:                 160 84% 39%;
+
+  /* Sidebar surfaces (slightly cooler than card) */
+  --sidebar:                  60 9% 97%;
+  --sidebar-foreground:       160 14% 10%;
+  --sidebar-primary:          160 84% 39%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent:           150 50% 94%;
+  --sidebar-accent-foreground: 160 70% 22%;
+  --sidebar-border:           150 8% 90%;
+  --sidebar-ring:             160 84% 39%;
+
+  /* Radius scale */
+  --radius:    0.75rem;        /* lg — default surface radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl:1.5rem;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px 0 hsl(160 14% 10% / 0.04);
+  --shadow-sm: 0 1px 3px 0 hsl(160 14% 10% / 0.06), 0 1px 2px -1px hsl(160 14% 10% / 0.06);
+  --shadow-md: 0 4px 12px -2px hsl(160 14% 10% / 0.08), 0 2px 4px -2px hsl(160 14% 10% / 0.06);
+  --shadow-lg: 0 12px 28px -6px hsl(160 14% 10% / 0.12), 0 4px 8px -4px hsl(160 14% 10% / 0.08);
+  --shadow-xl: 0 24px 48px -12px hsl(160 14% 10% / 0.18);
+  --shadow-glow: 0 0 0 1px hsl(var(--primary) / 0.15), 0 8px 32px -8px hsl(var(--primary) / 0.28);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   160ms;
+  --duration-normal: 240ms;
+  --duration-slow:   380ms;
+
+  /* Glass surfaces (alpha-driven, theme-aware) */
+  --glass-bg:     hsl(0 0% 100% / 0.72);
+  --glass-border: hsl(160 14% 10% / 0.06);
+  --glass-blur:   16px;
+}
+
+/* ---- DARK ---------------------------------------------------------------- */
+.dark {
+  --background:           156 18% 6%;
+  --foreground:           60 9% 96%;
+  --card:                 156 16% 9%;
+  --card-foreground:      60 9% 96%;
+  --popover:              156 16% 9%;
+  --popover-foreground:   60 9% 96%;
+  --primary:              160 84% 45%;
+  --primary-foreground:   156 18% 6%;
+  --primary-hover:        160 84% 52%;
+  --secondary:            156 12% 14%;
+  --secondary-foreground: 60 9% 96%;
+  --muted:                156 12% 14%;
+  --muted-foreground:     155 6% 62%;
+  --accent:               160 40% 16%;
+  --accent-foreground:    160 84% 70%;
+  --destructive:          0 65% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --success:              160 84% 45%;
+  --warning:              38 92% 55%;
+  --border:               156 14% 16%;
+  --input:                156 14% 18%;
+  --ring:                 160 84% 45%;
+
+  --sidebar:                  156 18% 5%;
+  --sidebar-foreground:       60 9% 96%;
+  --sidebar-primary:          160 84% 45%;
+  --sidebar-primary-foreground: 156 18% 6%;
+  --sidebar-accent:           160 40% 16%;
+  --sidebar-accent-foreground: 160 84% 70%;
+  --sidebar-border:           156 14% 16%;
+  --sidebar-ring:             160 84% 45%;
+
+  --glass-bg:     hsl(156 18% 6% / 0.55);
+  --glass-border: hsl(0 0% 100% / 0.06);
+}
+
+/* ---- Tailwind v4 theme bridge -------------------------------------------- */
+@theme inline {
+  --color-background:           hsl(var(--background));
+  --color-foreground:           hsl(var(--foreground));
+  --color-card:                 hsl(var(--card));
+  --color-card-foreground:      hsl(var(--card-foreground));
+  --color-popover:              hsl(var(--popover));
+  --color-popover-foreground:   hsl(var(--popover-foreground));
+  --color-primary:              hsl(var(--primary));
+  --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-primary-hover:        hsl(var(--primary-hover));
+  --color-secondary:            hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:                hsl(var(--muted));
+  --color-muted-foreground:     hsl(var(--muted-foreground));
+  --color-accent:               hsl(var(--accent));
+  --color-accent-foreground:    hsl(var(--accent-foreground));
+  --color-destructive:          hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success:              hsl(var(--success));
+  --color-warning:              hsl(var(--warning));
+  --color-border:               hsl(var(--border));
+  --color-input:                hsl(var(--input));
+  --color-ring:                 hsl(var(--ring));
+
+  --color-sidebar:                  hsl(var(--sidebar));
+  --color-sidebar-foreground:       hsl(var(--sidebar-foreground));
+  --color-sidebar-primary:          hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent:           hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border:           hsl(var(--sidebar-border));
+  --color-sidebar-ring:             hsl(var(--sidebar-ring));
+
+  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-glow: var(--shadow-glow);
+}
+
+/* ---- Base layer ---------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "cv11", "ss01", "ss03";
+    letter-spacing: 0.005em;
+    transition:
+      background-color var(--duration-normal) var(--ease-standard),
+      color           var(--duration-normal) var(--ease-standard),
+      border-color    var(--duration-normal) var(--ease-standard);
+  }
+  /* Editorial display tracking — Stripe/Notion feel */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+
+  /* Custom scrollbar — subtle, theme-aware */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ---- Premium utilities --------------------------------------------------- */
+@layer utilities {
+  /* Glass surface — theme-aware via CSS vars */
+  .glass {
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  }
+
+  /* Hairline divider that respects the theme */
+  .hairline {
+    background: linear-gradient(to right,
+      transparent,
+      hsl(var(--border)) 20%,
+      hsl(var(--border)) 80%,
+      transparent);
+    height: 1px;
+  }
+
+  /* Subtle inner ring used on premium cards */
+  .ring-inset-soft {
+    box-shadow: inset 0 1px 0 0 hsl(var(--foreground) / 0.04);
+  }
+
+  /* Editorial gradient text used for hero numerals/words */
+  .text-gradient-primary {
+    background: linear-gradient(135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary-hover)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Focus ring used across interactive primitives */
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(var(--ring) / 0.6);
+  }
+
+  /* Premium motion presets */
+  .animate-fade-in    { animation: fade-in    var(--duration-normal) var(--ease-standard) both; }
+  .animate-rise-in    { animation: rise-in    var(--duration-slow)   var(--ease-standard) both; }
+  .animate-pulse-dot  { animation: pulse-dot  1.8s var(--ease-standard) infinite; }
+  .animate-shimmer    { animation: shimmer    1.6s linear infinite; }
+
+  .shimmer-gradient {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(var(--foreground) / 0.04) 40%,
+      hsl(var(--foreground) / 0.08) 50%,
+      hsl(var(--foreground) / 0.04) 60%,
+      transparent 100%);
+    background-size: 200% 100%;
+  }
+}
+
+/* ---- Keyframes ----------------------------------------------------------- */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.92); }
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

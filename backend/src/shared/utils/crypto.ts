@@ -1,0 +1,18 @@
+import crypto from 'crypto';
+
+const SALT = process.env.PASSWORD_SALT || 'chatify-default-super-secure-salt-value-for-pbkdf2';
+
+/**
+ * Hashes a plain-text password using PBKDF2.
+ */
+export function hashPassword(password: string): string {
+  return crypto.pbkdf2Sync(password, SALT, 1000, 64, 'sha512').toString('hex');
+}
+
+/**
+ * Verifies a plain-text password against a hashed password.
+ */
+export function verifyPassword(password: string, hash: string): boolean {
+  const incomingHash = hashPassword(password);
+  return crypto.timingSafeEqual(Buffer.from(incomingHash, 'hex'), Buffer.from(hash, 'hex'));
+}

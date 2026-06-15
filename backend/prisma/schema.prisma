@@ -1,0 +1,100 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String        @id @default(uuid()) @map("_id")
+  username       String?       @unique
+  displayName    String?
+  email          String        @unique
+  password       String?
+  avatarUrl      String?
+  bio            String?
+  privacySetting String        @default("EVERYONE") // EVERYONE, FRIENDS_OF_FRIENDS, VERIFIED_ONLY, NOBODY
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  sentRequests     ChatRequest[] @relation("SentRequests")
+  receivedRequests  ChatRequest[] @relation("ReceivedRequests")
+  deviceTokens     DeviceToken[]
+
+  @@map("users")
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid()) @map("_id")
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   Platform
+  token      String   @unique
+  endpoint   String?
+  p256dh     String?
+  auth       String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
+model ChatRequest {
+  id          String        @id @default(uuid()) @map("_id")
+  senderId    String
+  receiverId  String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  sender      User          @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User          @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("chat_requests")
+}
+
+model ChatRoom {
+  id        String    @id @default(uuid()) @map("_id")
+  user1Id   String
+  user2Id   String
+  createdAt DateTime  @default(now())
+  
+  messages  Message[]
+
+  @@unique([user1Id, user2Id])
+  @@map("chat_rooms")
+}
+
+model Message {
+  id         String   @id @default(uuid()) @map("_id")
+  chatRoomId String
+  senderId   String
+  content    String
+  messageType String  @default("TEXT") // TEXT, IMAGE, EMOJI
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)
+  replyToId  String? // self-relation / reference to another message for replies
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+

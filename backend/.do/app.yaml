@@ -1,0 +1,63 @@
+# DigitalOcean App Platform spec for the Chatify backend.
+# Deploy via UI (recommended for first time) OR with:
+#   doctl apps create --spec backend/.do/app.yaml
+#
+# Secrets (DATABASE_URL, token secrets, VAPID keys) are NOT in this file —
+# set them in the DO dashboard as encrypted env vars, or with `type: SECRET`.
+name: chatify-backend
+region: blr1 # Bangalore — closest region; change if you prefer (nyc/sfo/ams/sgp)
+
+services:
+  - name: api
+    dockerfile_path: backend/Dockerfile
+    source_dir: backend
+    github:
+      repo: Jatin-Rane-007/Chatify
+      branch: main
+      deploy_on_push: true
+
+    http_port: 3000
+    instance_size_slug: basic-xxs # 512 MB / 1 vCPU — ~$5/mo, covered by credit
+    instance_count: 1
+
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 10
+      period_seconds: 10
+
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      # ---- Set these as encrypted secrets in the dashboard ----
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: ACCESS_TOKEN_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: REFRESH_TOKEN_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      # Salts password hashing (pbkdf2). MUST match the value used to hash
+      # existing accounts, or all current passwords stop validating.
+      - key: PASSWORD_SALT
+        scope: RUN_TIME
+        type: SECRET
+      - key: CORS_ORIGIN
+        scope: RUN_TIME
+        value: "https://CHANGE_ME-your-webapp-domain"
+      # ---- Optional: push notifications ----
+      - key: EXPO_ACCESS_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: VAPID_PUBLIC_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: VAPID_PRIVATE_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: VAPID_CONTACT_EMAIL
+        scope: RUN_TIME
+        value: "you@example.com"

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI-First Full Stack · 6-Week Sprint (8 max)</title>
+<style>
+  :root {
+    --bg: #0a0d14;
+    --bg-2: #10151f;
+    --bg-3: #19202e;
+    --panel: #121826;
+    --border: #243049;
+    --text: #e8eef9;
+    --muted: #8794b0;
+    --accent: #ff5c8a;
+    --accent-2: #ffb547;
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --violet: #a78bfa;
+    --gradient: linear-gradient(135deg, #ff5c8a 0%, #ffb547 100%);
+    --gradient-2: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+    --shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3, h4 { margin: 0 0 .5rem; line-height: 1.2; }
+  p { color: var(--muted); line-height: 1.6; }
+
+  aside.sidebar {
+    background: linear-gradient(180deg, #0a0d14 0%, #0c1220 100%);
+    border-right: 1px solid var(--border);
+    padding: 1.25rem 1rem;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: .65rem; margin-bottom: 1.25rem; }
+  .brand .logo {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--gradient);
+    display: grid; place-items: center; font-weight: 900; color: #0a0d14;
+    box-shadow: var(--shadow); font-size: .85rem;
+  }
+  .brand h2 { font-size: 1rem; font-weight: 800; letter-spacing: .2px; }
+  .brand small { color: var(--muted); font-size: .7rem; }
+  .urgency {
+    margin: 0 0 1rem; padding: .65rem .75rem; border-radius: 10px;
+    background: rgba(255,92,138,.08); border: 1px solid rgba(255,92,138,.35);
+    font-size: .75rem; color: #ffc4d4;
+  }
+  .urgency strong { color: #ff8aab; }
+
+  .nav-section { margin-top: .85rem; }
+  .nav-section .label { font-size: .66rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); padding: 0 .5rem .4rem; }
+  .nav a {
+    display: flex; align-items: center; gap: .65rem; padding: .5rem .65rem;
+    color: var(--text); border-radius: 8px; font-size: .86rem;
+    border: 1px solid transparent;
+  }
+  .nav a:hover { background: var(--bg-3); text-decoration: none; border-color: var(--border); }
+  .nav a.active { background: var(--bg-3); border-color: var(--accent); }
+  .nav .ico { width: 18px; text-align: center; opacity: .9; }
+
+  .global-progress {
+    margin-top: 1rem; padding: .85rem; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 12px;
+  }
+  .progress-bar { height: 8px; background: var(--bg-3); border-radius: 999px; overflow: hidden; margin-top: .5rem; }
+  .progress-bar > div { height: 100%; background: var(--gradient); width: 0%; transition: width .4s ease; }
+
+  main { padding: 1.75rem 2rem; min-width: 0; }
+  .hero {
+    background:
+      radial-gradient(1200px 400px at 90% -100px, rgba(255,92,138,.22), transparent 60%),
+      radial-gradient(800px 300px at -10% 0%, rgba(255,181,71,.16), transparent 60%),
+      linear-gradient(180deg, #0d121e 0%, #11182a 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px; padding: 1.75rem; position: relative; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .hero h1 { font-size: clamp(1.5rem, 2.4vw, 2.3rem); background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .sub { color: #d2dbef; margin-top: .35rem; max-width: 780px; }
+  .hero .meta { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.1rem; }
+  .pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .3rem .65rem; border-radius: 999px; background: rgba(255,255,255,.04);
+    border: 1px solid var(--border); font-size: .76rem; color: #d4ddef;
+  }
+  .pill.accent { background: rgba(255,92,138,.13); border-color: rgba(255,92,138,.42); color: #ffb6cf; }
+  .pill.cyan { background: rgba(34,211,238,.12); border-color: rgba(34,211,238,.4); color: #aeeefb; }
+  .pill.green { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.4); color: #b6f0d6; }
+  .pill.warn { background: rgba(255,181,71,.13); border-color: rgba(255,181,71,.4); color: #ffd594; }
+  .pill.violet { background: rgba(167,139,250,.14); border-color: rgba(167,139,250,.4); color: #d6c9ff; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .85rem; margin-top: 1.25rem; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: .9rem 1rem; }
+  .stat .num { font-size: 1.55rem; font-weight: 900; }
+  .stat .lbl { color: var(--muted); font-size: .76rem; }
+
+  section { margin-top: 2rem; }
+  section > header { display: flex; justify-content: space-between; align-items: end; margin-bottom: .85rem; gap: 1rem; flex-wrap: wrap; }
+  section > header h2 { font-size: 1.3rem; }
+  section > header p { margin: .2rem 0 0; }
+  .section-tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: var(--accent-2); font-weight: 800; }
+
+  /* Sprint week cards */
+  .sprint-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: .85rem; }
+  .week {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 1rem;
+    position: relative; overflow: hidden;
+  }
+  .week::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--gradient);
+  }
+  .week.alt::before { background: var(--gradient-2); }
+  .week .num { font-size: .7rem; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+  .week h3 { font-size: 1rem; margin-top: .15rem; }
+  .week .hours { font-size: .75rem; color: var(--accent-2); margin: .3rem 0 .55rem; }
+  .week ul { margin: .35rem 0 0; padding-left: 1.05rem; color: #c9d2e6; font-size: .85rem; }
+  .week li { margin: .15rem 0; }
+  .week .ship {
+    margin-top: .65rem; padding: .5rem .65rem; background: var(--bg-2); border: 1px dashed var(--border);
+    border-radius: 8px; font-size: .78rem; color: #d2dbef;
+  }
+  .week .ship strong { color: var(--green); }
+  .check {
+    display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--muted);
+    margin-top: .55rem; cursor: pointer; user-select: none;
+  }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  /* Daily template */
+  .daily { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .65rem; }
+  .slot { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: .8rem; }
+  .slot .time { font-size: .72rem; color: var(--accent-2); font-weight: 800; letter-spacing: .1em; }
+  .slot h4 { font-size: .9rem; margin: .2rem 0 .25rem; }
+  .slot p { font-size: .8rem; margin: 0; }
+
+  /* Projects */
+  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 1rem; }
+  .project {
+    background: linear-gradient(180deg, var(--panel) 0%, #121b2e 100%);
+    border: 1px solid var(--border); border-radius: 16px; padding: 1.1rem; position: relative; overflow: hidden;
+  }
+  .project::after {
+    content: ''; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px;
+    background: var(--gradient); opacity: .12; border-radius: 50%; filter: blur(12px);
+  }
+  .project.alt::after { background: var(--gradient-2); }
+  .project .num-badge {
+    display: inline-flex; width: 30px; height: 30px; border-radius: 9px;
+    background: var(--gradient); color: #0a0d14; font-weight: 900;
+    align-items: center; justify-content: center; margin-bottom: .6rem;
+  }
+  .project.alt .num-badge { background: var(--gradient-2); }
+  .project h3 { font-size: 1.02rem; }
+  .project .lvl { font-size: .72rem; color: var(--muted); margin-bottom: .55rem; }
+  .project .stack { display: flex; flex-wrap: wrap; gap: .3rem; margin: .55rem 0; }
+  .project .stack span { font-size: .68rem; padding: .18rem .5rem; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); color: #c9d3e6; }
+  .project .ddl { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .7rem; font-size: .8rem; }
+  .project .ddl div { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: .45rem .55rem; }
+  .project .ddl strong { display: block; font-size: .68rem; color: var(--muted); margin-bottom: .12rem; font-weight: 700; }
+
+  /* AgentSwarms map */
+  .swarm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .65rem; }
+  .swarm-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: .8rem; }
+  .swarm-card h4 { font-size: .88rem; }
+  .swarm-card p { font-size: .8rem; margin: .3rem 0 0; }
+
+  /* Decisions */
+  .decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: .65rem; }
+  .decision { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: .8rem; }
+  .decision h4 { font-size: .9rem; }
+  .vs { display: flex; gap: .4rem; flex-wrap: wrap; margin: .35rem 0; }
+  .vs span { font-size: .7rem; padding: .18rem .5rem; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; }
+  .verdict { font-size: .8rem; color: var(--muted); }
+
+  /* Skip list */
+  .skip-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: .55rem; }
+  .skip { padding: .7rem .8rem; border-radius: 10px; border: 1px dashed var(--border); background: var(--bg-2); font-size: .82rem; }
+  .skip strong { color: var(--accent-2); }
+
+  /* DSA */
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  th, td { padding: .55rem .75rem; text-align: left; font-size: .85rem; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg-2); color: #cad4ea; font-weight: 700; font-size: .78rem; letter-spacing: .03em; }
+  tr:last-child td { border-bottom: 0; }
+  .freq { display: inline-block; width: 60px; height: 6px; background: var(--bg-3); border-radius: 4px; overflow: hidden; }
+  .freq > i { display: block; height: 100%; background: var(--gradient); }
+
+  /* Trackers */
+  .trackers { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .tracker { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 1rem; }
+  .tracker h3 { font-size: 1rem; }
+  .tracker p { font-size: .8rem; }
+  .check-list { list-style: none; margin: .55rem 0 0; padding: 0; }
+  .check-list li {
+    display: flex; align-items: center; gap: .55rem; padding: .42rem .55rem;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2);
+    margin-bottom: .35rem; font-size: .82rem;
+  }
+  .check-list input { accent-color: var(--green); }
+  .ready-banner {
+    margin-top: .85rem; padding: .65rem .75rem; border-radius: 10px;
+    background: rgba(52,211,153,.08); border: 1px dashed rgba(52,211,153,.5);
+    color: #b6f0d6; font-size: .82rem; display: none;
+  }
+  .ready-banner.show { display: block; }
+
+  /* Timeline svg */
+  .graph-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 1rem; overflow: auto; }
+  svg.tl { width: 100%; min-width: 700px; height: 140px; display: block; }
+
+  footer { margin-top: 2.5rem; padding: 1.2rem 0; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; text-align: center; }
+
+  .menu-btn {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 50;
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    width: 40px; height: 40px; border-radius: 10px; font-size: 1.1rem;
+  }
+  @media (max-width: 960px) {
+    body { grid-template-columns: 1fr; }
+    aside.sidebar {
+      position: fixed; left: -280px; top: 0; width: 260px; z-index: 40;
+      transition: left .25s ease;
+    }
+    aside.sidebar.open { left: 0; }
+    .menu-btn { display: grid; place-items: center; }
+    main { padding: 4rem 1rem 1.5rem; }
+    .stats { grid-template-columns: repeat(2,1fr); }
+    .trackers { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">☰</button>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">6W</div>
+    <div>
+      <h2>Sprint Mode</h2>
+      <small>RN Dev → AI Full Stack</small>
+    </div>
+  </div>
+
+  <div class="urgency">
+    <strong>⚡ 6 weeks target · 8 weeks hard cap.</strong><br/>
+    Apply by end of <strong>Week 4</strong>. No tutorial rabbit holes.
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="label">Overview</div>
+      <a href="#overview" class="active"><span class="ico">◎</span> Mission</a>
+      <a href="#timeline"><span class="ico">⌛</span> 6-Week Timeline</a>
+      <a href="#daily"><span class="ico">⏱</span> Daily Template</a>
+    </div>
+    <div class="nav-section">
+      <div class="label">Execution</div>
+      <a href="#weeks"><span class="ico">▦</span> Week-by-Week</a>
+      <a href="#projects"><span class="ico">★</span> 2 Flagship Projects</a>
+      <a href="#agentswarms"><span class="ico">⚙</span> AgentSwarms Map</a>
+    </div>
+    <div class="nav-section">
+      <div class="label">Decisions</div>
+      <a href="#decisions"><span class="ico">⇄</span> Tech Picks (Locked)</a>
+      <a href="#skip"><span class="ico">✕</span> Hard Skips</a>
+      <a href="#dsa"><span class="ico">{ }</span> DSA (Minimal)</a>
+    </div>
+    <div class="nav-section">
+      <div class="label">Apply</div>
+      <a href="#interview"><span class="ico">☑</span> Interview Tracker</a>
+      <a href="#jobs"><span class="ico">⌬</span> Job Readiness</a>
+    </div>
+  </nav>
+
+  <div class="global-progress">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <small style="color:var(--muted);">Sprint progress</small>
+      <strong id="progressPct">0%</strong>
+    </div>
+    <div class="progress-bar"><div id="progressFill"></div></div>
+    <small id="progressMeta" style="color:var(--muted);display:block;margin-top:.45rem;">0 / 0 ship-items complete</small>
+  </div>
+</aside>
+
+<main>
+
+  <section id="overview" class="hero">
+    <span class="section-tag">⚡ Sprint Brief · 6 Weeks (8 max)</span>
+    <h1>Get Hired in 6 Weeks. Not 6 Months.</h1>
+    <p class="sub">You already have React, TypeScript, mobile architecture, and 2 years of shipping. You don't need a curriculum — you need a sprint. This plan compresses backend, AI engineering, and 2 portfolio projects into 6 weeks of daily output. Apply by Week 4 while finishing Project 2 in parallel. Most of "becoming AI full-stack" is taste + shipping under constraint — both of which you already have from RN work.</p>
+    <div class="meta">
+      <span class="pill accent">⏱ 6 weeks target · 8 weeks max</span>
+      <span class="pill cyan">🚀 Apply Week 4</span>
+      <span class="pill green">📦 2 flagships (not 3)</span>
+      <span class="pill warn">🧠 RAG + Agents + MCP</span>
+      <span class="pill violet">🎯 ~6 hrs/day, 6 days/wk</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" style="color:#ff5c8a">06</div><div class="lbl">Sprint Weeks</div></div>
+      <div class="stat"><div class="num" style="color:#ffb547">02</div><div class="lbl">Flagship Projects</div></div>
+      <div class="stat"><div class="num" style="color:#22d3ee">~36</div><div class="lbl">Hrs/Week</div></div>
+      <div class="stat"><div class="num" style="color:#34d399">W4</div><div class="lbl">First Application</div></div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline">
+    <header>
+      <div>
+        <span class="section-tag">Sprint Timeline</span>
+        <h2>Compressed Execution</h2>
+        <p>Each week ends with something shipped — code, deploy, or demo. No "learning weeks" with nothing to show.</p>
+      </div>
+    </header>
+    <div class="graph-wrap">
+      <svg viewBox="0 0 1000 140" class="tl">
+        <defs>
+          <linearGradient id="tlg" x1="0" x2="1">
+            <stop offset="0" stop-color="#ff5c8a"/>
+            <stop offset="1" stop-color="#ffb547"/>
+          </linearGradient>
+        </defs>
+        <line x1="40" y1="70" x2="960" y2="70" stroke="#243049" stroke-width="4" />
+        <line x1="40" y1="70" x2="960" y2="70" stroke="url(#tlg)" stroke-width="4" stroke-dasharray="6 6" />
+        <g font-family="inherit" font-size="11" fill="#cad4ea">
+          <g transform="translate(95,70)"><circle r="10" fill="#ff5c8a"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 1</text><text y="32" text-anchor="middle">Node + DB + Auth</text></g>
+          <g transform="translate(245,70)"><circle r="10" fill="#ff5c8a"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 2</text><text y="32" text-anchor="middle">Next.js + Ship P1</text></g>
+          <g transform="translate(395,70)"><circle r="10" fill="#ffb547"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 3</text><text y="32" text-anchor="middle">LLM + RAG</text></g>
+          <g transform="translate(545,70)"><circle r="10" fill="#ffb547"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 4</text><text y="32" text-anchor="middle">Agents + MCP · APPLY</text></g>
+          <g transform="translate(695,70)"><circle r="10" fill="#a78bfa"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 5</text><text y="32" text-anchor="middle">Ship P2 + Interview</text></g>
+          <g transform="translate(845,70)"><circle r="10" fill="#34d399"/><text y="-18" text-anchor="middle" font-weight="700">WEEK 6</text><text y="32" text-anchor="middle">Polish · Convert</text></g>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- DAILY TEMPLATE -->
+  <section id="daily">
+    <header>
+      <div>
+        <span class="section-tag">Daily Template</span>
+        <h2>~6 Hours/Day · 6 Days/Week</h2>
+        <p>Same shape every day. Stop fighting motivation — let structure do the work.</p>
+      </div>
+    </header>
+    <div class="daily">
+      <div class="slot"><div class="time">⏰ 90 MIN · MORNING</div><h4>Learn the next concept</h4><p>One topic, one source. Read docs, not courses. No videos &gt;30 min.</p></div>
+      <div class="slot"><div class="time">⏰ 30 MIN · MID-MORNING</div><h4>DSA — 1 problem</h4><p>NeetCode pattern of the day. Time-box 30 min. Read solution if stuck.</p></div>
+      <div class="slot"><div class="time">⏰ 3 HRS · AFTERNOON</div><h4>Ship code</h4><p>Project work only. Push to GitHub every day. No "setup" days.</p></div>
+      <div class="slot"><div class="time">⏰ 60 MIN · EVENING</div><h4>From W4: Apply + Outreach</h4><p>5 applications/day. 3 cold DMs. 1 LinkedIn/X post weekly.</p></div>
+    </div>
+  </section>
+
+  <!-- WEEKS -->
+  <section id="weeks">
+    <header>
+      <div>
+        <span class="section-tag">Week-by-Week</span>
+        <h2>The 6 Weeks</h2>
+        <p>Tick each "Ship" item — that's what drives your sprint progress. Skip the "learn" if you already know it; you don't get bonus points for re-reading.</p>
+      </div>
+    </header>
+
+    <div class="sprint-grid">
+
+      <div class="week">
+        <div class="num">WEEK 1 · DAYS 1–6</div>
+        <h3>Backend Crash: Node + Postgres + Auth</h3>
+        <div class="hours">~36 hrs · Lean on your JS/TS</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Learn (compressed)</strong>
+        <ul>
+          <li>Node event loop, async, streams (1 day)</li>
+          <li>Hono or Express + Zod validation</li>
+          <li>Postgres + Prisma (schema → migrate → query)</li>
+          <li>JWT + refresh tokens · Clerk for speed</li>
+          <li>Deploy: Fly.io or Railway</li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> Auth + CRUD API deployed publicly. Postman/Bruno collection in repo.
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+      <div class="week alt">
+        <div class="num">WEEK 2 · DAYS 7–12</div>
+        <h3>Next.js Full-Stack → Ship Project 1</h3>
+        <div class="hours">~36 hrs · Your React experience compounds here</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Learn (compressed)</strong>
+        <ul>
+          <li>Next 15 App Router: RSC, Server Actions, route handlers</li>
+          <li>Caching layers + streaming + Suspense</li>
+          <li>tRPC for type-safe API (skip GraphQL)</li>
+          <li>Tailwind + shadcn/ui (you already know CSS)</li>
+          <li>Sentry + posthog wired in 30 min</li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> <em>Project 1 — Pulse</em> live with auth, dashboard, deployed. README + 60s Loom.
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+      <div class="week">
+        <div class="num">WEEK 3 · DAYS 13–18</div>
+        <h3>LLM Engineering + RAG</h3>
+        <div class="hours">~36 hrs · The AI core</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Learn (compressed)</strong>
+        <ul>
+          <li>Anthropic SDK + Vercel AI SDK (streaming, tool calling)</li>
+          <li>Prompt patterns: structured output, JSON schemas, CoT</li>
+          <li>Embeddings + pgvector (one DB, no Pinecone yet)</li>
+          <li>RAG pipeline: chunk → embed → retrieve → re-rank → cite</li>
+          <li>Inngest for async ingestion jobs</li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> RAG prototype inside Project 2 scaffold — answers with citations. Deploy preview live.
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+      <div class="week alt">
+        <div class="num">WEEK 4 · DAYS 19–24</div>
+        <h3>Agents + MCP + Evals · 🚀 START APPLYING</h3>
+        <div class="hours">~36 hrs · Differentiator week</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Learn (compressed)</strong>
+        <ul>
+          <li>Tool calling: function schemas, parallel calls, streaming</li>
+          <li>Agent loops: ReAct + Plan-Execute (use Vercel AI SDK or Mastra)</li>
+          <li>Build 1 MCP server (stdio) exposing real tools</li>
+          <li>Langfuse or Braintrust for traces + evals</li>
+          <li>Prompt injection basics + guardrails</li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> Agent feature inside Project 2 (tool calling + traces). <strong style="color:var(--accent-2);">Send first 25 applications.</strong>
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+      <div class="week">
+        <div class="num">WEEK 5 · DAYS 25–30</div>
+        <h3>Finish Project 2 + Interview Loop</h3>
+        <div class="hours">~36 hrs · Apply + interview in parallel</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Build &amp; convert</strong>
+        <ul>
+          <li>Polish Project 2: streaming UI, eval suite, cost dashboard</li>
+          <li>Architecture diagrams (Excalidraw) for both projects</li>
+          <li>STAR stories: 3 per project, written down</li>
+          <li>1 system design dry run (AI chat product)</li>
+          <li>Daily: 5 apps + 3 cold DMs + take-home if received</li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> <em>Project 2 — Lexicon</em> live + portfolio site + 2 blog posts published.
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+      <div class="week alt">
+        <div class="num">WEEK 6 · DAYS 31–36</div>
+        <h3>Polish, Convert, Negotiate</h3>
+        <div class="hours">~36 hrs · Close offers</div>
+        <strong style="font-size:.78rem;color:var(--cyan);">Convert mode</strong>
+        <ul>
+          <li>Crush onsites — 2 mock interviews this week (Pramp/Exponent)</li>
+          <li>Fix any rough edge in projects flagged by interviewers</li>
+          <li>1 OSS PR to an AI tool you use (Vercel AI SDK, Mastra, etc.)</li>
+          <li>Negotiation prep: ranges by stack, market data</li>
+          <li>If no offer yet → continue into <em>weeks 7–8 buffer</em></li>
+        </ul>
+        <div class="ship"><strong>✓ Ship:</strong> Offer received OR clear pipeline of 3+ final rounds for weeks 7–8.
+          <label class="check"><input type="checkbox" data-cp> Done</label>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:1rem;padding:.85rem 1rem;background:var(--bg-2);border:1px dashed var(--border);border-radius:12px;font-size:.85rem;color:#d4ddef;">
+      <strong style="color:var(--accent-2);">Weeks 7–8 (buffer, optional):</strong> Only if Week 6 doesn't close. Don't pre-plan it — earning the buffer is fine, planning to use it leaks urgency.
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <header>
+      <div>
+        <span class="section-tag">Portfolio</span>
+        <h2>2 Flagship Projects · Strategic, Not Maximal</h2>
+        <p>Two beats three. Recruiters skim — a polished pair signals more than three half-done products.</p>
+      </div>
+    </header>
+    <div class="projects">
+
+      <div class="project">
+        <div class="num-badge">1</div>
+        <h3>Pulse — Multi-tenant SaaS (Full-Stack Proof)</h3>
+        <div class="lvl">Weeks 1–2 · Built &amp; deployed by end of W2</div>
+        <p>A Linear-lite team workspace: auth, teams, tasks, real-time updates, billing skeleton. Proves you can architect a production backend &amp; frontend without AI hype.</p>
+        <div class="stack">
+          <span>Next.js 15</span><span>Postgres</span><span>Prisma</span><span>tRPC</span><span>Clerk</span><span>shadcn</span><span>Fly.io / Vercel</span>
+        </div>
+        <div class="ddl">
+          <div><strong>Prereqs</strong>None — Week 1 covers it</div>
+          <div><strong>Deliverable</strong>Live URL + GitHub + Loom + diagram</div>
+          <div><strong>Bar</strong>50ms p95 on hot routes, tests for auth</div>
+          <div><strong>Signal</strong>"Ships real product, not toys"</div>
+        </div>
+      </div>
+
+      <div class="project alt">
+        <div class="num-badge">2</div>
+        <h3>Lexicon — AI Knowledge Copilot (RAG + Agent + MCP)</h3>
+        <div class="lvl">Weeks 3–5 · The hire-magnet</div>
+        <p>Ingests PDFs / GitHub / Notion → answers with citations → has an Agent mode that takes actions via tool calls (one tool exposed as an MCP server). Traces + evals + cost dashboard. This is what AI-first teams actually want to see.</p>
+        <div class="stack">
+          <span>Next.js</span><span>Anthropic SDK</span><span>Vercel AI SDK</span><span>pgvector</span><span>Inngest</span><span>Langfuse</span><span>MCP</span><span>S3</span>
+        </div>
+        <div class="ddl">
+          <div><strong>Prereqs</strong>Project 1 + Week 3</div>
+          <div><strong>Deliverable</strong>Demo + eval report + arch doc + blog</div>
+          <div><strong>Bar</strong>≥85% citation accuracy on golden set</div>
+          <div><strong>Signal</strong>"Production AI engineer, not prompt jockey"</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.82rem;margin-top:.7rem;">💡 <strong style="color:var(--accent-2);">Why not a 3rd project?</strong> In a 6-week sprint, polish &gt; quantity. One AI flagship done well outclasses two half-done. If you have buffer in Week 6, deepen Lexicon — don't start a third.</p>
+  </section>
+
+  <!-- AGENTSWARMS -->
+  <section id="agentswarms">
+    <header>
+      <div>
+        <span class="section-tag">External Curriculum Map</span>
+        <h2>agentswarms.fyi → Sprint Mapping</h2>
+        <p>Compressed into Weeks 3–4. Every concept ships into Project 2.</p>
+      </div>
+    </header>
+    <div class="swarm-grid">
+      <div class="swarm-card"><h4>🧠 LLM Fundamentals</h4><p>Tokens, context, sampling. <strong>→ W3 Day 1.</strong></p></div>
+      <div class="swarm-card"><h4>💬 Prompt Engineering</h4><p>Structured output, CoT, schemas. <strong>→ W3 Day 2.</strong></p></div>
+      <div class="swarm-card"><h4>📚 RAG</h4><p>Chunk → embed → retrieve → cite. <strong>→ W3 Days 3–5.</strong></p></div>
+      <div class="swarm-card"><h4>🗄 Vector DBs</h4><p>pgvector only. <strong>→ W3 Day 3.</strong></p></div>
+      <div class="swarm-card"><h4>⚙ Workflows</h4><p>Inngest for async ingest. <strong>→ W3 Day 5.</strong></p></div>
+      <div class="swarm-card"><h4>🔌 Tool Calling</h4><p>Function schemas, streaming. <strong>→ W4 Day 1.</strong></p></div>
+      <div class="swarm-card"><h4>🤖 AI Agents</h4><p>ReAct, Plan-Execute loops. <strong>→ W4 Day 2.</strong></p></div>
+      <div class="swarm-card"><h4>🐝 Orchestration / Swarms</h4><p>Single supervisor + 1–2 workers (don't over-build). <strong>→ W4 Day 3.</strong></p></div>
+      <div class="swarm-card"><h4>🧩 MCP</h4><p>Build 1 stdio MCP server exposing real tools. <strong>→ W4 Day 4.</strong></p></div>
+      <div class="swarm-card"><h4>📈 Evals</h4><p>10-row golden set + scoring. <strong>→ W4 Day 5.</strong></p></div>
+      <div class="swarm-card"><h4>🔭 Observability</h4><p>Langfuse traces + cost. <strong>→ W4 Day 5.</strong></p></div>
+      <div class="swarm-card"><h4>🏗 AI Product Arch</h4><p>Generative UI + safety basics. <strong>→ W5 polish.</strong></p></div>
+    </div>
+  </section>
+
+  <!-- DECISIONS -->
+  <section id="decisions">
+    <header>
+      <div>
+        <span class="section-tag">Tech Picks · Locked</span>
+        <h2>No Re-Litigating. Just Build.</h2>
+        <p>In a 6-week sprint, indecision is the enemy. These are the picks. Don't shop around.</p>
+      </div>
+    </header>
+    <div class="decisions">
+      <div class="decision"><h4>Frontend → <strong>Next.js 15</strong></h4><div class="vs"><span>App Router</span><span>RSC</span></div><p class="verdict">Picked. Your React skills port directly. No Remix detour.</p></div>
+      <div class="decision"><h4>DB → <strong>Postgres + Prisma</strong></h4><div class="vs"><span>Neon / Supabase</span></div><p class="verdict">Picked. Learn Mongo enough to talk about it in interviews — don't ship with it.</p></div>
+      <div class="decision"><h4>Auth → <strong>Clerk</strong> (week 1) → <strong>Auth.js</strong> (later)</h4><div class="vs"><span>Speed first</span></div><p class="verdict">Use Clerk to ship Project 1 in days. Implement Auth.js after employment for depth.</p></div>
+      <div class="decision"><h4>API → <strong>tRPC</strong> inside Next, <strong>REST</strong> for public</h4><div class="vs"><span>GraphQL = skip</span></div><p class="verdict">Picked. Don't waste a week on GraphQL.</p></div>
+      <div class="decision"><h4>Vector DB → <strong>pgvector</strong></h4><div class="vs"><span>One DB</span></div><p class="verdict">Picked. Pinecone/Qdrant only when you have a real reason — you don't.</p></div>
+      <div class="decision"><h4>LLM SDK → <strong>Vercel AI SDK + Anthropic</strong></h4><div class="vs"><span>Mastra for agents (optional)</span></div><p class="verdict">Picked. Skip LangChain JS — too much noise. Vercel AI SDK + raw Anthropic calls covers 95%.</p></div>
+      <div class="decision"><h4>Observability → <strong>Langfuse</strong></h4><div class="vs"><span>Free tier</span></div><p class="verdict">Picked. Hosted, free tier sufficient. Braintrust if you want fancier evals later.</p></div>
+      <div class="decision"><h4>Async → <strong>Inngest</strong></h4><div class="vs"><span>Skip BullMQ for now</span></div><p class="verdict">Picked. Inngest's local dev UX is unmatched for a sprint.</p></div>
+    </div>
+  </section>
+
+  <!-- SKIP -->
+  <section id="skip">
+    <header>
+      <div>
+        <span class="section-tag">Hard Skips</span>
+        <h2>What You're NOT Doing in 6 Weeks</h2>
+        <p>The discipline of skipping is the discipline of shipping.</p>
+      </div>
+    </header>
+    <div class="skip-list">
+      <div class="skip"><strong>SKIP:</strong> MongoDB deep dive. 10 min skim is enough for interviews.</div>
+      <div class="skip"><strong>SKIP:</strong> GraphQL, NestJS, Java/Go backends.</div>
+      <div class="skip"><strong>SKIP:</strong> Kubernetes, Terraform, Docker Swarm. Vercel + Fly is enough.</div>
+      <div class="skip"><strong>SKIP:</strong> Microservices, Kafka, gRPC, event sourcing.</div>
+      <div class="skip"><strong>SKIP:</strong> Fine-tuning, training, LoRA. Stay at the API layer.</div>
+      <div class="skip"><strong>SKIP:</strong> LangChain JS (legacy patterns). Use Vercel AI SDK + Mastra.</div>
+      <div class="skip"><strong>SKIP:</strong> Heavy DSA (300+ leetcode). 25 problems is your budget.</div>
+      <div class="skip"><strong>SKIP:</strong> Third flagship project. Polish two instead.</div>
+      <div class="skip"><strong>SKIP:</strong> Custom design systems. Tailwind + shadcn — done.</div>
+      <div class="skip"><strong>SKIP:</strong> Reading "Designing Data-Intensive Applications" cover-to-cover. Skim ch. 1, 3, 5, 7.</div>
+      <div class="skip"><strong>SKIP:</strong> Watching YouTube full-stack courses. You're past that.</div>
+      <div class="skip"><strong>SKIP:</strong> Setting up Neovim / dotfiles / theme. Use whatever you have.</div>
+    </div>
+  </section>
+
+  <!-- DSA -->
+  <section id="dsa">
+    <header>
+      <div>
+        <span class="section-tag">DSA · Minimum Viable</span>
+        <h2>25 Problems Total. Patterns, Not Reps.</h2>
+        <p>30 min/day, weeks 2–6. Most startup screens are take-homes or pair-programming, not Leetcode hards.</p>
+      </div>
+    </header>
+    <table>
+      <thead><tr><th>Pattern</th><th>Why</th><th>Problems</th><th>Frequency</th></tr></thead>
+      <tbody>
+        <tr><td>Arrays &amp; Hashing</td><td>~90% of screens</td><td>5</td><td><span class="freq"><i style="width:95%"></i></span></td></tr>
+        <tr><td>Two Pointers / Sliding Window</td><td>Cheap high-yield</td><td>4</td><td><span class="freq"><i style="width:88%"></i></span></td></tr>
+        <tr><td>Trees / BFS / DFS</td><td>Standard traversal</td><td>4</td><td><span class="freq"><i style="width:85%"></i></span></td></tr>
+        <tr><td>JS specifics (Promises, debounce, EventEmitter)</td><td>Startup pair rounds</td><td>4</td><td><span class="freq"><i style="width:82%"></i></span></td></tr>
+        <tr><td>Binary Search</td><td>Mid-level filter</td><td>2</td><td><span class="freq"><i style="width:70%"></i></span></td></tr>
+        <tr><td>Stack / Linked List</td><td>Classic asks</td><td>3</td><td><span class="freq"><i style="width:60%"></i></span></td></tr>
+        <tr><td>Heap / Top-K</td><td>Product rounds</td><td>2</td><td><span class="freq"><i style="width:55%"></i></span></td></tr>
+        <tr><td>DP (intro)</td><td>1D only</td><td>1</td><td><span class="freq"><i style="width:35%"></i></span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.82rem;margin-top:.55rem;">Plus <strong>1 system design</strong> rehearsal (AI chat product) + <strong>1 take-home</strong> dry run. That's your interview prep envelope.</p>
+  </section>
+
+  <!-- TRACKERS -->
+  <section id="interview">
+    <header>
+      <div>
+        <span class="section-tag">Trackers</span>
+        <h2>Ready to Apply Checklist</h2>
+        <p>You can begin applying at the end of Week 2 (with Project 1 live). Go aggressive in Week 4. Both columns checked = stop second-guessing, just send.</p>
+      </div>
+    </header>
+    <div class="trackers">
+      <div class="tracker">
+        <h3>🎤 Interview Prep</h3>
+        <p>Minimum bar for not embarrassing yourself in a startup loop.</p>
+        <ul class="check-list" id="interviewList">
+          <li><input type="checkbox" data-iv> 25 DSA problems solved, patterns articulated</li>
+          <li><input type="checkbox" data-iv> 1 system design rehearsed (AI chat / RAG product)</li>
+          <li><input type="checkbox" data-iv> 1 mock interview completed (Pramp / Exponent)</li>
+          <li><input type="checkbox" data-iv> STAR stories for both flagship projects</li>
+          <li><input type="checkbox" data-iv> "Why AI / why now" narrative locked</li>
+          <li><input type="checkbox" data-iv> 1 take-home dry run done under time</li>
+        </ul>
+      </div>
+      <div class="tracker" id="jobs">
+        <h3>💼 Job Application Bar</h3>
+        <p>Minimum to start sending applications. Hit it by end of Week 4.</p>
+        <ul class="check-list" id="jobsList">
+          <li><input type="checkbox" data-jb> Project 1 live + GitHub + Loom</li>
+          <li><input type="checkbox" data-jb> Project 2 demo live (even if not polished)</li>
+          <li><input type="checkbox" data-jb> Portfolio one-pager published</li>
+          <li><input type="checkbox" data-jb> Resume retitled "AI / Full-Stack Engineer"</li>
+          <li><input type="checkbox" data-jb> LinkedIn headline + about rewritten</li>
+          <li><input type="checkbox" data-jb> 1 blog post (build process or tech deep-dive)</li>
+          <li><input type="checkbox" data-jb> 25 applications sent (Wellfound, YC WAAS, Cracked)</li>
+          <li><input type="checkbox" data-jb> 15 cold DMs to founders / hiring managers</li>
+        </ul>
+        <div class="ready-banner" id="readyBanner">✅ Bar cleared. Now go for volume — 10+ apps/day, prioritize warm intros &amp; AI-first teams.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Sprint mode · 6 weeks target · 8 weeks hard cap · Progress persists in your browser localStorage.
+  </footer>
+
+</main>
+
+<script>
+  const links = document.querySelectorAll('.nav a');
+  links.forEach(a => a.addEventListener('click', () => {
+    links.forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.getElementById('sidebar').classList.remove('open');
+  }));
+
+  document.getElementById('menuBtn').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+
+  const STORAGE_KEY = 'ai-roadmap-sprint-v1';
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  document.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
+    cb.dataset.idx = i;
+    if (saved[i]) cb.checked = true;
+    cb.addEventListener('change', () => {
+      saved[i] = cb.checked;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const all = document.querySelectorAll('input[data-cp]');
+    const done = [...all].filter(x => x.checked).length;
+    const pct = all.length ? Math.round(done / all.length * 100) : 0;
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressMeta').textContent = `${done} / ${all.length} ship-items complete`;
+
+    const ivAll = document.querySelectorAll('input[data-iv]');
+    const jbAll = document.querySelectorAll('input[data-jb]');
+    const ivDone = [...ivAll].every(x => x.checked);
+    const jbDone = [...jbAll].every(x => x.checked);
+    document.getElementById('readyBanner').classList.toggle('show', ivDone && jbDone);
+  }
+  updateProgress();
+</script>
+
+</body>
+</html>
