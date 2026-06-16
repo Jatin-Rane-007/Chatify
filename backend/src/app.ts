@@ -9,6 +9,7 @@ import { globalRateLimiter } from './shared/middleware/rateLimiter.middleware.js
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { userRoutes } from './modules/users/users.routes.js';
 import { chatRoutes } from './modules/chats/chats.routes.js';
+import { mediaRoutes } from './modules/media/media.routes.js';
 import { notificationsRoutes } from './modules/notifications/notifications.routes.js';
 import { env } from './config/env.js';
 
@@ -34,6 +35,7 @@ app.use(compression() as any);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/chats', chatRoutes);
+app.use('/api/v1/media', mediaRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
 
 // Health check endpoint as specified in backend/AGENTS.md

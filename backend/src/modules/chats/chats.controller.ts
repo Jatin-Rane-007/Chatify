@@ -553,6 +553,33 @@ export class ChatsController {
   };
 
   /**
+   * Clear all of the current user's chats. Deletes every chat room the user is
+   * part of (messages cascade via the ChatRoom relation). The conversation also
+   * disappears for the partner — these rooms are shared, 1:1.
+   */
+  clearAllChats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as any;
+      const userId = authReq.user?.userId;
+      if (!userId) {
+        throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+      }
+
+      const result = await prisma.chatRoom.deleteMany({
+        where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'All chats cleared',
+        data: { deleted: result.count },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * Get message history for a chat room
    */
   getRoomMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

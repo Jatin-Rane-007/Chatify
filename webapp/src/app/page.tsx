@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Avatar } from '@/components/ui/avatar';
 import { Skeleton, ChatShimmer, ProfileShimmer } from '@/components/ui/shimmer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -16,6 +17,8 @@ import { SettingsDialog } from '@/features/settings/components/SettingsDialog';
 import { env } from '@/lib/env';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { uploadImage, validateImage } from '@/lib/media/uploadImage';
+import { useWallpaperId, wallpaperById } from '@/lib/chat/wallpaper';
 import {
   MessageSquare,
   Search,
@@ -31,6 +34,8 @@ import {
   UserX,
   Plus,
   ArrowLeft,
+  ImagePlus,
+  Loader2,
 } from 'lucide-react';
 
 interface ChatRoom {
@@ -56,6 +61,28 @@ interface Message {
   createdAt: string;
   isRead: boolean;
   replyToId: string | null;
+}
+
+// Human-friendly day label for chat date separators.
+function formatDayLabel(iso: string): string {
+  const date = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(date, today)) return 'Today';
+  if (sameDay(date, yesterday)) return 'Yesterday';
+  return date.toLocaleDateString([], {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
+  });
 }
 
 export default function Home() {
@@ -85,25 +112,22 @@ export default function Home() {
     username: string;
   } | null>(null);
   
+  // Chat wallpaper preference
+  const wallpaperId = useWallpaperId();
+  const wallpaperBackground = wallpaperById(wallpaperId).background;
+
+  // Image sharing state
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const activeRoomIdRef = useRef<string | null>(null);
   const activePartnerIdRef = useRef<string | null>(null);
   const lastTypingSentRef = useRef<number>(0);
-
-  // Predefined avatar gradient styling classes
-  const getAvatarGradient = (id: string | null) => {
-    switch (id) {
-      case 'rose-orange': return 'from-rose-500 to-orange-500';
-      case 'emerald-cyan': return 'from-emerald-400 to-cyan-500';
-      case 'blue-indigo': return 'from-blue-500 to-indigo-600';
-      case 'purple-pink': return 'from-purple-500 to-pink-500';
-      case 'amber-yellow': return 'from-amber-400 to-yellow-500';
-      case 'primary-violet':
-      default:
-        return 'from-primary to-violet-500';
-    }
-  };
 
   // Sync active room and partner refs to avoid socket reconnects
   useEffect(() => {
@@ -276,6 +300,44 @@ export default function Home() {
     }
   };
 
+  // Upload an image to Cloudinary, then send it as an IMAGE message.
+  const handleSendImage = async (file: File) => {
+    if (!activeRoomId || !token || uploading) return;
+    const validationError = validateImage(file);
+    if (validationError) {
+      setUploadError(validationError);
+      return;
+    }
+
+    const roomId = activeRoomId;
+    const currentReplyId = replyingTo?.id || null;
+    setUploadError(null);
+    setUploading(true);
+    setUploadProgress(0);
+    setReplyingTo(null);
+
+    try {
+      const url = await uploadImage(file, 'message', setUploadProgress);
+      const resData = await api.post<Message>(endpoints.chats.roomMessages(roomId), {
+        content: url,
+        messageType: 'IMAGE',
+        replyToId: currentReplyId,
+      });
+      if (resData.success) {
+        setMessages((prev) =>
+          prev.some((m) => m.id === resData.data.id) ? prev : [...prev, resData.data],
+        );
+        fetchChatRooms();
+      }
+    } catch (err) {
+      console.error('Failed to send image', err);
+      setUploadError(err instanceof Error ? err.message : 'Failed to send image.');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   // Send typing heartbeat to backend via socket
   const handleTyping = () => {
     if (!activeRoomId || !socketRef.current) return;
@@ -396,9 +458,14 @@ export default function Home() {
               type="button"
               onClick={() => setSettingsOpen(true)}
               title="Settings"
-              className={`h-9 w-9 rounded-full bg-gradient-to-tr ${getAvatarGradient(user.avatarUrl)} flex items-center justify-center font-bold text-white text-sm uppercase shrink-0 shadow-sm hover:opacity-90 transition-opacity`}
+              className="rounded-full hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
-              {(user.displayName ? user.displayName[0] : user.email[0]).toUpperCase()}
+              <Avatar
+                src={user.avatarUrl}
+                name={user.displayName ?? user.email}
+                seed={user.id}
+                className="h-9 w-9 text-sm"
+              />
             </button>
             <span className="flex-1 text-base font-semibold tracking-tight text-foreground">
               Chats
@@ -483,9 +550,12 @@ export default function Home() {
                         : 'hover:bg-accent/30'
                     }`}
                   >
-                    <div className={`h-11 w-11 rounded-full bg-gradient-to-tr ${getAvatarGradient(room.partner.avatarUrl)} flex items-center justify-center font-bold text-white text-sm uppercase shrink-0 shadow-sm`}>
-                      {(room.partner.displayName ? room.partner.displayName[0] : room.partner.username[0]).toUpperCase()}
-                    </div>
+                    <Avatar
+                      src={room.partner.avatarUrl}
+                      name={room.partner.displayName || room.partner.username}
+                      seed={room.partner.id}
+                      className="h-11 w-11 text-sm"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline mb-0.5 gap-2">
                         <span className={`block text-sm truncate ${unread ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>
@@ -561,9 +631,12 @@ export default function Home() {
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div className={`h-9 w-9 rounded-full bg-gradient-to-tr ${getAvatarGradient(activeRoom.partner.avatarUrl)} flex items-center justify-center font-bold text-white text-xs uppercase shrink-0 shadow-sm`}>
-                      {(activeRoom.partner.displayName ? activeRoom.partner.displayName[0] : activeRoom.partner.username[0]).toUpperCase()}
-                    </div>
+                    <Avatar
+                      src={activeRoom.partner.avatarUrl}
+                      name={activeRoom.partner.displayName || activeRoom.partner.username}
+                      seed={activeRoom.partner.id}
+                      className="h-9 w-9 text-xs"
+                    />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 text-foreground font-bold text-sm min-w-0">
                         <span className="truncate">{activeRoom.partner.displayName}</span>
@@ -588,33 +661,52 @@ export default function Home() {
                 </header>
 
                 {/* Messages Panel */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4 bg-card/5">
+                <div
+                  className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4 bg-card/5"
+                  style={wallpaperBackground ? { background: wallpaperBackground } : undefined}
+                >
                   {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6 max-w-sm mx-auto select-none">
-                      <div className={`h-12 w-12 rounded-full bg-gradient-to-tr ${getAvatarGradient(activeRoom.partner.avatarUrl)} flex items-center justify-center font-bold text-white text-sm uppercase shadow-md mb-4`}>
-                        {activeRoom.partner.displayName[0].toUpperCase()}
-                      </div>
+                      <Avatar
+                        src={activeRoom.partner.avatarUrl}
+                        name={activeRoom.partner.displayName || activeRoom.partner.username}
+                        seed={activeRoom.partner.id}
+                        className="h-12 w-12 text-sm shadow-md mb-4"
+                      />
                       <h3 className="text-sm font-bold text-foreground mb-1">Chat with {activeRoom.partner.displayName}</h3>
                       <p className="text-xs text-muted-foreground">
                         Say hi — your first message starts the conversation.
                       </p>
                     </div>
                   ) : (
-                    messages.map((m) => {
+                    messages.map((m, idx) => {
                       const isSelf = m.senderId === user.id;
                       const replySource = m.replyToId ? messages.find(msg => msg.id === m.replyToId) : null;
-                      
+                      const isImage = m.messageType === 'IMAGE';
+                      const prev = idx > 0 ? messages[idx - 1] : null;
+                      const showDaySeparator =
+                        !prev ||
+                        new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString();
+
                       return (
+                        <React.Fragment key={m.id}>
+                        {showDaySeparator && (
+                          <div className="flex justify-center py-1">
+                            <span className="px-3 py-1 rounded-full bg-card border border-border/60 text-[10px] font-semibold text-muted-foreground shadow-sm">
+                              {formatDayLabel(m.createdAt)}
+                            </span>
+                          </div>
+                        )}
                         <div
-                          key={m.id}
                           className={`flex items-start gap-2 sm:gap-3 max-w-[85%] sm:max-w-[70%] group ${isSelf ? 'ml-auto flex-row-reverse' : ''}`}
                         >
-                          <div className={`h-8 w-8 rounded-full bg-gradient-to-tr ${
-                            isSelf ? getAvatarGradient(user.avatarUrl) : getAvatarGradient(activeRoom.partner.avatarUrl)
-                          } flex items-center justify-center font-bold text-white text-xs uppercase shrink-0 select-none shadow-sm`}>
-                            {isSelf ? user.displayName?.[0] : activeRoom.partner.displayName?.[0]}
-                          </div>
-                          
+                          <Avatar
+                            src={isSelf ? user.avatarUrl : activeRoom.partner.avatarUrl}
+                            name={isSelf ? (user.displayName ?? user.email) : (activeRoom.partner.displayName || activeRoom.partner.username)}
+                            seed={isSelf ? user.id : activeRoom.partner.id}
+                            className="h-8 w-8 text-xs"
+                          />
+
                           <div className="space-y-1 min-w-0">
                             {/* Message Header */}
                             <div className={`flex items-center gap-2 ${isSelf ? 'justify-end' : ''}`}>
@@ -632,29 +724,40 @@ export default function Home() {
                                 <span className="block font-bold text-muted-foreground">
                                   Replying to {replySource.senderId === user.id ? 'You' : activeRoom.partner.displayName}:
                                 </span>
-                                <span className="italic">{replySource.content}</span>
+                                <span className="italic">
+                                  {replySource.messageType === 'IMAGE' ? '📷 Photo' : replySource.content}
+                                </span>
                               </div>
                             )}
 
                             {/* Main Message Bubble */}
                             <div className="relative group">
-                              <div className={`p-3 rounded-xl text-xs leading-relaxed shadow-sm break-words ${
-                                isSelf
-                                  ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                  : 'bg-card border border-border/80 rounded-tl-none'
-                              }`}>
-                                {m.messageType === 'IMAGE' || m.content.startsWith('http://') || m.content.startsWith('https://') && (m.content.endsWith('.jpg') || m.content.endsWith('.png') || m.content.endsWith('.webp') || m.content.endsWith('.gif')) ? (
-                                  <div className="space-y-1.5">
-                                    <img src={m.content} alt="Shared attachment" className="max-h-48 max-w-full rounded-lg object-cover shadow-sm bg-muted" onError={(e) => {
-                                      // Fallback if image fails to load
-                                      (e.target as HTMLElement).style.display = 'none';
-                                    }} />
-                                    <span className="block">{m.content}</span>
-                                  </div>
-                                ) : (
-                                  m.content
-                                )}
-                              </div>
+                              {isImage ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setLightboxUrl(m.content)}
+                                  className={`block overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 ${
+                                    isSelf ? 'border-primary/30 rounded-tr-none' : 'border-border/80 rounded-tl-none'
+                                  }`}
+                                  title="View image"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={m.content}
+                                    alt="Shared image"
+                                    className="max-h-64 w-auto max-w-full object-cover bg-muted"
+                                    loading="lazy"
+                                  />
+                                </button>
+                              ) : (
+                                <div className={`p-3 rounded-xl text-xs leading-relaxed shadow-sm break-words ${
+                                  isSelf
+                                    ? 'bg-primary text-primary-foreground rounded-tr-none'
+                                    : 'bg-card border border-border/80 rounded-tl-none'
+                                }`}>
+                                  {m.content}
+                                </div>
+                              )}
 
                               {/* Hover Message Actions (Reply & Delete) */}
                               <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 ${
@@ -700,6 +803,7 @@ export default function Home() {
 
                           </div>
                         </div>
+                        </React.Fragment>
                       );
                     })
                   )}
@@ -733,6 +837,34 @@ export default function Home() {
                   )}
 
                   <form onSubmit={handleSendMessage} className="flex gap-2 max-w-4xl mx-auto items-center">
+                    {/* Hidden picker for image attachments */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSendImage(file);
+                        e.target.value = '';
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 rounded-lg shrink-0 hover:bg-accent/40"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      title="Share a photo"
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      ) : (
+                        <ImagePlus className="h-5 w-5" />
+                      )}
+                    </Button>
+
                     <Input
                       type="text"
                       placeholder={`Message ${activeRoom.partner.displayName}...`}
@@ -773,15 +905,57 @@ export default function Home() {
                     </Button>
                   </form>
 
-                  {/* Attachment tips */}
-                  <div className="max-w-4xl mx-auto mt-2 flex gap-4 text-[9px] text-muted-foreground px-1 select-none">
-                    <span>💡 Tip: Paste an image URL to share photos instantly.</span>
-                  </div>
+                  {/* Upload progress / error */}
+                  {uploading ? (
+                    <div className="max-w-4xl mx-auto mt-2 flex items-center gap-2 px-1">
+                      <div className="h-1 flex-1 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-[width] duration-200"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-muted-foreground tabular-nums shrink-0">
+                        Uploading {uploadProgress}%
+                      </span>
+                    </div>
+                  ) : uploadError ? (
+                    <div className="max-w-4xl mx-auto mt-2 flex items-center justify-between gap-2 px-1">
+                      <span className="text-[10px] font-semibold text-destructive">{uploadError}</span>
+                      <button
+                        type="button"
+                        onClick={() => setUploadError(null)}
+                        className="text-destructive/70 hover:text-destructive shrink-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="max-w-4xl mx-auto mt-2 flex gap-4 text-[9px] text-muted-foreground px-1 select-none">
+                      <span>💡 Tip: Tap the photo icon to share an image.</span>
+                    </div>
+                  )}
                 </div>
               </>
             )
           )}
         </main>
+
+        {/* Image lightbox */}
+        <Dialog open={!!lightboxUrl} onOpenChange={(open) => !open && setLightboxUrl(null)}>
+          <DialogContent showCloseButton className="max-w-3xl p-2 bg-card/80 backdrop-blur-xl">
+            <DialogTitle className="sr-only">Image preview</DialogTitle>
+            {lightboxUrl && (
+              <div className="flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={lightboxUrl}
+                  alt="Shared image"
+                  className="max-h-[80vh] w-auto max-w-full rounded-lg object-contain"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* WhatsApp-style dialogs */}
         <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
@@ -863,8 +1037,9 @@ export default function Home() {
           </span>
         </h1>
 
-        <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-3xl mb-10 sm:mb-12 leading-relaxed">
-          Experience a beautiful, light-speed messaging client engineered for performance. Built with React 19, Tailwind CSS v4, and customizable theme designs.
+        <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mb-10 sm:mb-12 leading-relaxed">
+          Real-time conversations, instant photo sharing, and read receipts — in a clean,
+          private space that feels great on every device.
         </p>
 
         {/* CTA Buttons */}
@@ -873,7 +1048,7 @@ export default function Home() {
             <Link href="/signup">Get Started Free</Link>
           </Button>
           <Button size="lg" variant="outline" className="flex-1 h-12 border-border/80 bg-background/50 active:scale-98" asChild>
-            <Link href="/login">Sign In with Email & Password</Link>
+            <Link href="/login">Sign In</Link>
           </Button>
         </div>
 
@@ -881,31 +1056,31 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full pt-10">
           <Card className="text-left bg-card/30 backdrop-blur-md border-border/50 p-6 space-y-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <Shield className="h-5 w-5" />
-            </div>
-            <h3 className="text-lg font-bold">Secure & Private</h3>
-            <p className="text-xs text-muted-foreground leading-normal">
-              Full security and secure authentication controls built for modern web architectures.
-            </p>
-          </Card>
-
-          <Card className="text-left bg-card/30 backdrop-blur-md border-border/50 p-6 space-y-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               <Zap className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-bold">Blazing Fast</h3>
+            <h3 className="text-lg font-bold">Real-time messaging</h3>
             <p className="text-xs text-muted-foreground leading-normal">
-              Real-time reactivity powered by Next.js and high-frequency modern states.
+              Messages, typing indicators, and read receipts arrive the moment they happen — no refresh needed.
             </p>
           </Card>
 
           <Card className="text-left bg-card/30 backdrop-blur-md border-border/50 p-6 space-y-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <Sparkles className="h-5 w-5" />
+              <ImagePlus className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-bold">Harmonious Themes</h3>
+            <h3 className="text-lg font-bold">Share photos instantly</h3>
             <p className="text-xs text-muted-foreground leading-normal">
-              Toggle smoothly between deep responsive dark theme and beautiful polished light themes.
+              Drop an image into any chat and it&apos;s delivered in seconds, with a full-screen preview a tap away.
+            </p>
+          </Card>
+
+          <Card className="text-left bg-card/30 backdrop-blur-md border-border/50 p-6 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Shield className="h-5 w-5" />
+            </div>
+            <h3 className="text-lg font-bold">Private &amp; yours</h3>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Granular privacy controls, blocking, and secure sign-in keep your conversations yours.
             </p>
           </Card>
         </div>

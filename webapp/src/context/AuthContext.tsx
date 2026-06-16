@@ -24,6 +24,9 @@ interface AuthContextType {
   logout: () => void;
   error: string | null;
   updateProfile: (data: Partial<User> & { name?: string }) => Promise<void>;
+  changeEmail: (newEmail: string, currentPassword: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: (currentPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,6 +105,27 @@ export function AuthProvider({ children }: { readonly children: React.ReactNode 
     }
   };
 
+  // Account actions deliberately don't toggle the global `busy` flag — that drives
+  // the full-page loading shimmer. These run inside the Settings dialog, which
+  // owns its own local loading UI; errors propagate to the caller to display.
+  const changeEmail = async (newEmail: string, currentPassword: string) => {
+    const res = await api.put<{ user: User }>(endpoints.auth.accountEmail, {
+      newEmail,
+      currentPassword,
+    });
+    const { user: updatedUser } = unwrap(res);
+    setStoredUser(updatedUser);
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await api.put(endpoints.auth.accountPassword, { currentPassword, newPassword });
+  };
+
+  const deleteAccount = async (currentPassword: string) => {
+    await api.del(endpoints.auth.account, { currentPassword });
+    clearSession();
+  };
+
   const value = {
     user,
     token,
@@ -111,6 +135,9 @@ export function AuthProvider({ children }: { readonly children: React.ReactNode 
     logout,
     error,
     updateProfile,
+    changeEmail,
+    changePassword,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -20,4 +20,9 @@ router.post('/login', validate(LoginSchema), authController.login);
 router.get('/profile/check-username', authController.checkUsername);
 router.put('/profile', authMiddleware, authController.updateProfile);
 
+// Account management
+router.put('/account/email', authMiddleware, authController.changeEmail);
+router.put('/account/password', authMiddleware, authController.changePassword);
+router.delete('/account', authMiddleware, authController.deleteAccount);
+
 export { router as authRoutes };

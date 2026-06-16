@@ -15,6 +15,11 @@ const envSchema = z.object({
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_CONTACT_EMAIL: z.string().email().optional(),
+  // Cloudinary — media (avatars + chat images). Optional so the app still boots
+  // without them; the media signature endpoint returns 503 until all three are set.
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

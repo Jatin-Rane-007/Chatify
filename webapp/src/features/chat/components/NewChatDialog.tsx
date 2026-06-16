@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Avatar } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/shimmer';
 import { useAuth } from '@/context/AuthContext';
@@ -160,7 +161,6 @@ export function NewChatDialog({ open, onOpenChange, onChatStarted }: NewChatDial
                     rel?.status === 'BLOCKED' && rel.senderId === user?.id;
                   const blockedByThem =
                     rel?.status === 'BLOCKED' && rel.receiverId === user?.id;
-                  const initial = (r.displayName?.[0] ?? r.username[0]).toUpperCase();
                   return (
                     <li key={r.id}>
                       <button
@@ -169,9 +169,12 @@ export function NewChatDialog({ open, onOpenChange, onChatStarted }: NewChatDial
                         onClick={() => handleStart(r)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/40 transition-colors text-left disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-violet-500 flex items-center justify-center font-bold text-white text-sm shrink-0">
-                          {initial}
-                        </div>
+                        <Avatar
+                          src={r.avatarUrl}
+                          name={r.displayName || r.username}
+                          seed={r.id}
+                          className="h-10 w-10 text-sm"
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-foreground truncate">
                             {r.displayName || r.username}

@@ -85,4 +85,51 @@ export class AuthController {
       next(error);
     }
   };
+
+  changeEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+
+      const { newEmail, currentPassword } = req.body;
+      if (!newEmail || !currentPassword) {
+        throw new AppError('New email and current password are required', 400, 'BAD_REQUEST');
+      }
+
+      const user = await this.authService.changeEmail(userId, newEmail, currentPassword);
+      res.status(200).json({ success: true, data: { user } });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        throw new AppError('Current and new password are required', 400, 'BAD_REQUEST');
+      }
+
+      await this.authService.changePassword(userId, currentPassword, newPassword);
+      res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+
+      const { currentPassword } = req.body;
+      await this.authService.deleteAccount(userId, currentPassword ?? '');
+      res.status(200).json({ success: true, message: 'Account deleted' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

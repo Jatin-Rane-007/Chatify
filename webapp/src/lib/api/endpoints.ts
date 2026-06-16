@@ -14,6 +14,9 @@ export const endpoints = {
     signup: '/api/v1/auth/signup',
     profile: '/api/v1/auth/profile',
     checkUsername: '/api/v1/auth/profile/check-username',
+    accountEmail: '/api/v1/auth/account/email',
+    accountPassword: '/api/v1/auth/account/password',
+    account: '/api/v1/auth/account',
   },
   users: {
     search: '/api/v1/users/search',
@@ -25,6 +28,9 @@ export const endpoints = {
     roomRead: (roomId: string) => `/api/v1/chats/rooms/${roomId}/read`,
     message: (messageId: string) => `/api/v1/chats/messages/${messageId}`,
     blocked: '/api/v1/chats/blocked',
+  },
+  media: {
+    signature: '/api/v1/media/signature',
   },
   notifications: {
     devices: '/api/v1/notifications/devices',

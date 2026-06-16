@@ -17,6 +17,7 @@ router.delete('/blocked/:userIdToUnblock', authMiddleware, chatsController.unblo
 // Chat Room Routes
 router.post('/rooms/direct', authMiddleware, chatsController.startDirectChat);
 router.get('/rooms', authMiddleware, chatsController.getChatRooms);
+router.delete('/rooms', authMiddleware, chatsController.clearAllChats);
 router.get('/rooms/:roomId/messages', authMiddleware, chatsController.getRoomMessages);
 router.post('/rooms/:roomId/messages', authMiddleware, chatsController.sendMessage);
 router.post('/rooms/:roomId/read', authMiddleware, chatsController.markRoomAsRead);
