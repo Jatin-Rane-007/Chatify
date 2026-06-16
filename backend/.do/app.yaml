@@ -47,7 +47,7 @@ services:
         type: SECRET
       - key: CORS_ORIGIN
         scope: RUN_TIME
-        value: "https://CHANGE_ME-your-webapp-domain"
+        value: "https://chatify-eight-chi.vercel.app"
       # ---- Optional: push notifications ----
       - key: EXPO_ACCESS_TOKEN
         scope: RUN_TIME
